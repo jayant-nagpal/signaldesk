@@ -292,3 +292,19 @@ html, body, #root {
   .controls-row { grid-template-columns: 1fr; }
   .topbar-meta { display: none; }
 }
+
+/* ── Sample data button (upload screen) ─────────────────────────────────── */
+.upload-sample-btn {
+  margin-top: 14px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--green);
+  background: rgba(34, 201, 138, 0.08);
+  border: 1px solid rgba(34, 201, 138, 0.35);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.upload-sample-btn:hover { background: rgba(34, 201, 138, 0.16); border-color: var(--green); }
+.upload-sample-btn:disabled { opacity: 0.6; cursor: default; }

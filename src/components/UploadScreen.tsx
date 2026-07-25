@@ -1,4 +1,4 @@
-import { useCallback, type RefObject } from 'react';
+import { useCallback, useState, type RefObject } from 'react';
 
 interface Props {
   onFile: (file: File) => void;
@@ -18,6 +18,20 @@ export function UploadScreen({ onFile, error, fileInputRef }: Props) {
     if (file) onFile(file);
   }, [onFile]);
 
+  const [loadingSample, setLoadingSample] = useState(false);
+  const handleSample = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoadingSample(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}sample/bets_df_sample.csv`);
+      if (!res.ok) throw new Error(`sample fetch failed: ${res.status}`);
+      const blob = await res.blob();
+      onFile(new File([blob], 'bets_df_sample.csv', { type: 'text/csv' }));
+    } catch {
+      setLoadingSample(false);
+    }
+  }, [onFile]);
+
   return (
     <div className="upload-screen">
       <div className="upload-card"
@@ -34,6 +48,9 @@ export function UploadScreen({ onFile, error, fileInputRef }: Props) {
         </svg>
         <p className="upload-title">Drop a quarterly bets_df file</p>
         <p className="upload-sub">5-min CSV with cum_return, days_held, bet_final_return, est_tc, sector_group</p>
+        <button className="upload-sample-btn" onClick={handleSample} disabled={loadingSample}>
+          {loadingSample ? 'Loading sample…' : 'No file handy? Try the synthetic sample →'}
+        </button>
         {error && <p className="upload-error">{error}</p>}
         <input
           ref={fileInputRef}
