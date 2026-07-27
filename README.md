@@ -8,12 +8,16 @@ SignalDesk is **not** a recommendation engine. It never ranks signals, never loo
 
 ## Try it in 30 seconds
 
+**Live demo:** [signaldesk-nu.vercel.app](https://signaldesk-nu.vercel.app) — click **“No file handy? Try the synthetic sample”** on the upload screen.
+
+Or run it locally:
+
 ```bash
 git clone https://github.com/jayant-nagpal/signaldesk.git
 cd signaldesk && npm install && npm run dev
 ```
 
-Click **“No file handy? Try the synthetic sample”** on the upload screen. 35k rows parse in ~350ms and every view lights up. To regenerate the sample with different characteristics:
+35k rows parse in ~350ms and every view lights up. To regenerate the sample with different characteristics:
 
 ```bash
 python scripts/generate_sample_data.py   # needs numpy
@@ -63,6 +67,31 @@ A quarterly `bets_df` CSV with one row per position per 5-minute bar. Required c
 Entry-signal columns (`alpha`, `beta`, `rsi`, `rlst`, `hotness`, EPS rank, price vs EMA/SMA, etc.) are shown in the drill-down when present.
 
 Everything runs client-side — the file never leaves your browser. A 237k-row quarter parses in ~1 second.
+
+## Where the file comes from (the original pipeline)
+
+This app is the analysis layer on top of a desk's backtesting pipeline — it
+doesn't run the backtest itself, it explains what already happened in one.
+
+```mermaid
+flowchart LR
+  M[Signal model<br/>alpha, RSI, EPS rank, ...] --> B[Backtest engine]
+  B -->|writes| F[(bets_df CSV<br/>one row / position / 5-min bar)]
+  F -->|upload, client-side only| SD[SignalDesk]
+  SD --> V1[P&L percentile fan]
+  SD --> V2[Drawdown distribution]
+  SD --> V3[Throttle Lab<br/>FCFS capital allocation]
+```
+
+On the desk, a signal model scores every candidate position each session; a
+backtest engine walks the quarter and, for every position it would have taken,
+writes one row per 5-minute bar to a `bets_df` file — entry signals, running
+return, exit reason. SignalDesk reads that file and answers the questions the
+raw numbers don't: which signals a **capital-limited** desk (finite number of
+slots, first-come-first-served) would actually have been able to take, which
+it would have had to skip, and — via the Throttle Lab — what those skipped
+signals went on to do. Nothing here re-runs or second-guesses the model; it's
+purely a lens on the model's own output.
 
 ## Run it locally
 
